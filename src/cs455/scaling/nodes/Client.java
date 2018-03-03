@@ -9,16 +9,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.sql.Timestamp;
+import java.util.*;
 
 public class Client {
     private SocketChannel client;
-    private static Client instance;
     private Selector selector;
     private List<String> hashes;
+    private int totalReceivedCount = 0;
+    private int totalSentCount = 0;
 
 
     private void startClient(String ip, int port) throws IOException {
@@ -39,8 +38,8 @@ public class Client {
 
     private void checkIfHashIsInList(String hash) {
         synchronized (hashes) {
-            System.out.println(hashes.contains(hash));
             hashes.remove(hash);
+            this.totalReceivedCount++;
         }
     }
 
@@ -77,6 +76,7 @@ public class Client {
             ByteBuffer buffer = ByteBuffer.wrap(msg);
             this.client.write(buffer);
             buffer.clear();
+            this.totalSentCount++;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,11 +85,13 @@ public class Client {
     private void startConnection(String[] args) throws IOException, InterruptedException {
         if(CheckInteger.isInteger(args[2] ) && CheckInteger.isInteger(args[1])) {
             this.startClient(args[0], Integer.parseInt(args[1]));
+            Timer timer = new Timer();
+            timer.schedule(new ClientStatsPrinter(this), 0, 20000);
             int count = 0;
             while (count < 10) {
                 byte[] testData = generateBytes();
                 String hash = GetSha.SHA1FromBytes(testData);
-                System.out.println(hash);
+
                 synchronized (hashes) {
                     hashes.add(hash);
                 }
@@ -106,6 +108,11 @@ public class Client {
     private void printUsage(){
         System.out.println("Usage: java cs455.scaling.nodes.Client [nodes-host] [nodes-port] [message-rate]");
         System.out.println("Server port and message must be integer values");
+    }
+
+    public void printStats() {
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        System.out.println(timestamp + " Total Sent Count: " + this.totalSentCount + ", Total Received Count: " + this.totalReceivedCount);
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
