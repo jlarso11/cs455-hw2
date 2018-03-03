@@ -1,5 +1,7 @@
 package cs455.scaling.threadPool;
 
+import cs455.scaling.nodes.Server;
+
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -10,15 +12,18 @@ public class ThreadPool {
 
     private ConcurrentLinkedQueue<SelectionKey> queuedTasks;
 
-    public ThreadPool() {
+    private final Server server;
+
+    public ThreadPool(Server server) {
         this.threads = new ConcurrentLinkedQueue<>();
         this.queuedTasks = new ConcurrentLinkedQueue<>();
+        this.server = server;
     }
 
     public void initializePool(int threadCount){
         synchronized (threads){
             for (int threadIndex = 0; threadIndex < threadCount; threadIndex++) {
-                SimpleThreadpoolThread thread = new SimpleThreadpoolThread(new AtomicBoolean(true), this, "thread " + threadIndex);
+                SimpleThreadpoolThread thread = new SimpleThreadpoolThread(new AtomicBoolean(true), this, "thread " + threadIndex, this.server);
                 thread.start();
                 this.threads.add(thread);
             }

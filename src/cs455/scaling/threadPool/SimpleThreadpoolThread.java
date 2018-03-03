@@ -1,6 +1,7 @@
 package cs455.scaling.threadPool;//import cs455.scaling.transportation.TCPSender;
 //import cs455.scaling.cs455.scaling.util.cs455.scaling.util5.scaling.GetSha;
 
+import cs455.scaling.nodes.Server;
 import cs455.scaling.util.GetSha;
 
 import java.io.IOException;
@@ -14,11 +15,13 @@ public class SimpleThreadpoolThread extends Thread {
     private AtomicBoolean execute;
     private SelectionKey selectionKey;
     private ThreadPool threadPool;
+    private final Server server;
 
-    public SimpleThreadpoolThread(AtomicBoolean execute, ThreadPool threadPool, String threadName) {
+    public SimpleThreadpoolThread(AtomicBoolean execute, ThreadPool threadPool, String threadName, Server server) {
         this.execute = execute;
         this.threadPool = threadPool;
         this.threadName = threadName;
+        this.server = server;
     }
 
     public void setExecute(AtomicBoolean execute){
@@ -30,12 +33,12 @@ public class SimpleThreadpoolThread extends Thread {
     }
 
     public void sendReturnMessage(SelectionKey selectionKey, String hash) {
-        System.out.println(hash);
         try {
            ByteBuffer buffer = ByteBuffer.wrap(hash.getBytes());
             SocketChannel channel = (SocketChannel) selectionKey.channel();
             channel.write(buffer);
             selectionKey.interestOps(SelectionKey.OP_READ);
+            server.incrementMessageCounts(selectionKey);
         } catch (IOException e) {
             e.printStackTrace();
         }

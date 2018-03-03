@@ -90,7 +90,7 @@ public class Client {
         if(CheckInteger.isInteger(args[2] ) && CheckInteger.isInteger(args[1])) {
             this.startClient(args[0], Integer.parseInt(args[1]));
             Timer timer = new Timer();
-            timer.schedule(new ClientStatsPrinter(this), 0, 20000);
+            timer.schedule(new StatsPrinter(this), 20000, 20000);
             int count = 0;
             while (count < 10) {
                 byte[] testData = generateBytes();
