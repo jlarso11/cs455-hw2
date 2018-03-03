@@ -1,4 +1,4 @@
-package cs455.scaling;
+package cs455.scaling.threadPool;
 
 import java.nio.channels.SelectionKey;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -61,7 +61,7 @@ public class ThreadPool {
     }
 
     public static void main(String[] args) {
-//        ThreadPool threadPool = new ThreadPool();
+//        threadPool threadPool = new threadPool();
 //        threadPool.initializePool(10);
 //        int count = 0;
 //        while(count < 1000) {

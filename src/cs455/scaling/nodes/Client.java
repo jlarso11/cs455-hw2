@@ -1,4 +1,4 @@
-package cs455.scaling;
+package cs455.scaling.nodes;
 
 import cs455.scaling.util.CheckInteger;
 import cs455.scaling.util.GetSha;

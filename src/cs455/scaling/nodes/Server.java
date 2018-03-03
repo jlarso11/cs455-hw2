@@ -1,11 +1,11 @@
-package cs455.scaling;
+package cs455.scaling.nodes;
 
+import cs455.scaling.threadPool.ThreadPool;
 import cs455.scaling.util.CheckInteger;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
