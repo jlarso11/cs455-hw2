@@ -119,6 +119,8 @@ public class Client {
             synchronized (totalSentCount) {
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 System.out.println(timestamp + " Total Sent Count: " + this.totalSentCount + ", Total Received Count: " + this.totalReceivedCount);
+                this.totalSentCount = 0;
+                this.totalReceivedCount = 0;
             }
         }
 
