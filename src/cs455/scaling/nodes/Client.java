@@ -16,8 +16,8 @@ public class Client {
     private SocketChannel client;
     private Selector selector;
     private List<String> hashes;
-    private int totalReceivedCount = 0;
-    private int totalSentCount = 0;
+    private Integer totalReceivedCount = 0;
+    private Integer totalSentCount = 0;
 
 
     private void startClient(String ip, int port) throws IOException {
@@ -39,7 +39,9 @@ public class Client {
     private void checkIfHashIsInList(String hash) {
         synchronized (hashes) {
             hashes.remove(hash);
-            this.totalReceivedCount++;
+            synchronized (totalReceivedCount) {
+                this.totalReceivedCount++;
+            }
         }
     }
 
@@ -76,7 +78,9 @@ public class Client {
             ByteBuffer buffer = ByteBuffer.wrap(msg);
             this.client.write(buffer);
             buffer.clear();
-            this.totalSentCount++;
+            synchronized (totalSentCount) {
+                this.totalSentCount++;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -111,8 +115,13 @@ public class Client {
     }
 
     public void printStats() {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        System.out.println(timestamp + " Total Sent Count: " + this.totalSentCount + ", Total Received Count: " + this.totalReceivedCount);
+        synchronized (totalReceivedCount) {
+            synchronized (totalSentCount) {
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                System.out.println(timestamp + " Total Sent Count: " + this.totalSentCount + ", Total Received Count: " + this.totalReceivedCount);
+            }
+        }
+
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
