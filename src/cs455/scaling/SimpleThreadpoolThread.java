@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SimpleThreadpoolThread extends Thread {
     private final String threadName;
     private AtomicBoolean execute;
-    private ThreadTask threadTask;
+    private SelectionKey selectionKey;
     private ThreadPool threadPool;
 
     public SimpleThreadpoolThread(AtomicBoolean execute, ThreadPool threadPool, String threadName) {
@@ -25,20 +25,42 @@ public class SimpleThreadpoolThread extends Thread {
         this.execute = execute;
     }
 
-    public void acceptNewTask(ThreadTask threadTask){
-        this.threadTask = threadTask;
+    public void acceptNewTask(SelectionKey selectionKey){
+        this.selectionKey = selectionKey;
     }
 
-    public void sendReturnMessage(ThreadTask threadTask, String hash) {
+    public void sendReturnMessage(SelectionKey selectionKey, String hash) {
+        System.out.println(hash);
         try {
            ByteBuffer buffer = ByteBuffer.wrap(hash.getBytes());
-            SelectionKey key = threadTask.getKey();
-            SocketChannel channel = (SocketChannel) key.channel();
+            SocketChannel channel = (SocketChannel) selectionKey.channel();
             channel.write(buffer);
-            key.interestOps(SelectionKey.OP_READ);
+            selectionKey.interestOps(SelectionKey.OP_READ);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private byte[] read(SelectionKey key) throws IOException {
+        SocketChannel channel = (SocketChannel) key.channel();
+        ByteBuffer buffer = ByteBuffer.allocate(8192);
+        int read = 0;
+        try {
+            while (buffer.hasRemaining() && read != -1) {
+                read = channel.read(buffer);
+            }
+        } catch (IOException e) {
+            /* Abnormal termination */
+            // Cancel the key and close the socket channel
+        }
+        // You may want to flip the buffer here
+        if (read == -1) {
+            /* Connection was terminated by the client. */
+            channel.close();
+            key.cancel();
+        }
+
+        return buffer.array();
     }
 
     @Override
@@ -47,20 +69,23 @@ public class SimpleThreadpoolThread extends Thread {
             // format based on: https://caffinc.github.io/2016/03/simple-threadpool/
             // Continue to execute when the execute flag is true
             while (execute.get()) {
-                if(threadTask != null) {
-                    synchronized (threadTask) {
+                if(selectionKey != null) {
+                    synchronized (selectionKey) {
 //                        System.out.println("Thread on: " + this.threadName);
-                        String hash = GetSha.SHA1FromBytes(threadTask.getBytes());
+                        byte[] byteArray = this.read(selectionKey);
+                        String hash = GetSha.SHA1FromBytes(byteArray);
 
-                        this.sendReturnMessage(threadTask, hash);
+                        this.sendReturnMessage(selectionKey, hash);
 
-                        this.threadTask = null;
+                        this.selectionKey = null;
                         this.threadPool.threadDoneExecuting(this);
                     }
                 }
             }
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -32,30 +32,6 @@ public class Server {
         channel.register(selector, SelectionKey.OP_READ);
     }
 
-    private void read(SelectionKey key) throws IOException {
-        SocketChannel channel = (SocketChannel) key.channel();
-        ByteBuffer buffer = ByteBuffer.allocate(8192);
-        int read = 0;
-        try {
-            while (buffer.hasRemaining() && read != -1) {
-                read = channel.read(buffer);
-            }
-            ThreadTask threadTask = new ThreadTask(key, buffer.array());
-            threadPool.addTask(threadTask);
-        } catch (IOException e) {
-            /* Abnormal termination */
-            // Cancel the key and close the socket channel
-        }
-        // You may want to flip the buffer here
-        if (read == -1) {
-            /* Connection was terminated by the client. */
-            channel.close();
-            key.cancel();
-            return;
-        }
-        key.interestOps(SelectionKey.OP_WRITE);
-    }
-
     public void startSelector(int port) throws IOException {
         this.selector = Selector.open();
 
@@ -83,6 +59,10 @@ public class Server {
                 iter.remove();
             }
         }
+    }
+
+    private void read(SelectionKey key) {
+        this.threadPool.addTask(key);
     }
 
     private void printUsage(){

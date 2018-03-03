@@ -89,6 +89,7 @@ public class Client {
             while (count < 10) {
                 byte[] testData = generateBytes();
                 String hash = GetSha.SHA1FromBytes(testData);
+                System.out.println(hash);
                 synchronized (hashes) {
                     hashes.add(hash);
                 }

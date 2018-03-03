@@ -1,5 +1,6 @@
 package cs455.scaling;
 
+import java.nio.channels.SelectionKey;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -7,7 +8,7 @@ public class ThreadPool {
 
     private ConcurrentLinkedQueue<SimpleThreadpoolThread> threads;
 
-    private ConcurrentLinkedQueue<ThreadTask> queuedTasks;
+    private ConcurrentLinkedQueue<SelectionKey> queuedTasks;
 
     public ThreadPool() {
         this.threads = new ConcurrentLinkedQueue<>();
@@ -24,17 +25,17 @@ public class ThreadPool {
         }
     }
 
-    public void addTask(ThreadTask threadTask) {
-        this.assignThread(threadTask);
+    public void addTask(SelectionKey selectionKey) {
+        this.assignThread(selectionKey);
     }
 
-    private void assignThread(ThreadTask threadTask) {
+    private void assignThread(SelectionKey selectionKey) {
         synchronized (threads){
             if (threads.size() == 0) {
-                queuedTasks.add(threadTask);
+                queuedTasks.add(selectionKey);
             } else {
                 SimpleThreadpoolThread thread = threads.poll();
-                thread.acceptNewTask(threadTask);
+                thread.acceptNewTask(selectionKey);
             }
         }
     }
@@ -60,13 +61,13 @@ public class ThreadPool {
     }
 
     public static void main(String[] args) {
-        ThreadPool threadPool = new ThreadPool();
-        threadPool.initializePool(10);
-        int count = 0;
-        while(count < 1000) {
-            threadPool.addTask(new ThreadTask(null, new byte[20]));
-            count++;
-        }
+//        ThreadPool threadPool = new ThreadPool();
+//        threadPool.initializePool(10);
+//        int count = 0;
+//        while(count < 1000) {
+//            threadPool.addTask(new ThreadTask(null, new byte[20]));
+//            count++;
+//        }
 
     }
 }
