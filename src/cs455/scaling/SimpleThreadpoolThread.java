@@ -49,7 +49,7 @@ public class SimpleThreadpoolThread extends Thread {
             while (execute.get()) {
                 if(threadTask != null) {
                     synchronized (threadTask) {
-                        System.out.println("Thread on: " + this.threadName);
+//                        System.out.println("Thread on: " + this.threadName);
                         String hash = GetSha.SHA1FromBytes(threadTask.getBytes());
 
                         this.sendReturnMessage(threadTask, hash);

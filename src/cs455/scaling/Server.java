@@ -1,6 +1,9 @@
 package cs455.scaling;
 
+import cs455.scaling.util.CheckInteger;
+
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -11,9 +14,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class Server {
-
-    private final String POISON_PILL = "POISON_PILL";
-    private ThreadPool threadPool;
+    private final ThreadPool threadPool;
     private Selector selector;
 
     public Server() {
@@ -27,13 +28,11 @@ public class Server {
     private void accept(SelectionKey key) throws IOException {
         ServerSocketChannel servSocket = (ServerSocketChannel) key.channel();
         SocketChannel channel = servSocket.accept();
-        System.out.println("Accepting incoming connection ");
         channel.configureBlocking(false);
         channel.register(selector, SelectionKey.OP_READ);
     }
 
     private void read(SelectionKey key) throws IOException {
-        System.out.println("reading from incoming connection");
         SocketChannel channel = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(8192);
         int read = 0;
@@ -57,13 +56,14 @@ public class Server {
         key.interestOps(SelectionKey.OP_WRITE);
     }
 
-    public void startSelector() throws IOException {
+    public void startSelector(int port) throws IOException {
         this.selector = Selector.open();
 
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.socket().bind(new InetSocketAddress("localhost", 5454));
+        serverSocketChannel.socket().bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), port));
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        System.out.println("Listening on IP: " + InetAddress.getLocalHost().getHostAddress() + " with open port : #" + port);
 
         while (true) {
             selector.select();
@@ -85,10 +85,20 @@ public class Server {
         }
     }
 
+    private void printUsage(){
+        System.out.println("Usage: java cs.455.scaling.nodes.Server [portnum] [thread-pool-size]");
+        System.out.println("Both arguments must be integers");
+    }
+
     public static void main(String[] args) throws IOException {
         Server server = new Server();
-        server.startPool(10);
-        server.startSelector();
+        if(args.length == 2 && CheckInteger.isInteger(args[0]) && CheckInteger.isInteger(args[1])) {
+            server.startPool(Integer.parseInt(args[1]));
+            server.startSelector(Integer.parseInt(args[0]));
+        } else {
+            server.printUsage();
+            return;
+        }
     }
 }
 
