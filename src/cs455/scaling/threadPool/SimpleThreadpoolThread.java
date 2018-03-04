@@ -39,6 +39,7 @@ public class SimpleThreadpoolThread extends Thread {
             channel.write(buffer);
             selectionKey.interestOps(SelectionKey.OP_READ);
             server.incrementMessageCounts(selectionKey);
+            buffer = null;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -80,8 +81,12 @@ public class SimpleThreadpoolThread extends Thread {
 
                         this.sendReturnMessage(selectionKey, hash);
 
+                        SelectionKey localKey = this.selectionKey;
+                        byteArray = null;
                         this.selectionKey = null;
-                        this.threadPool.threadDoneExecuting(this);
+
+                        this.threadPool.threadDoneExecuting(this, localKey);
+
                     }
                 }
             }

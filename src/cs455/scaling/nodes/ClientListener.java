@@ -19,7 +19,6 @@ public class ClientListener implements Runnable {
     @Override
     public void run() {
         while(true) {
-            //other operations
             try {
                 selector.select();
                 Set<SelectionKey> selectedKeys = selector.selectedKeys();

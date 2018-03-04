@@ -36,18 +36,22 @@ public class ThreadPool {
 
     private void assignThread(SelectionKey selectionKey) {
         synchronized (threads){
-            if (threads.size() == 0) {
-                queuedTasks.add(selectionKey);
-            } else {
-                SimpleThreadpoolThread thread = threads.poll();
-                thread.acceptNewTask(selectionKey);
+            if(!this.server.checkIfThreadIsBeingRead(selectionKey)) {
+                this.server.updateThreadIsBeingRead(selectionKey, true);
+                if (threads.size() == 0) {
+                    queuedTasks.add(selectionKey);
+                } else {
+                    SimpleThreadpoolThread thread = threads.poll();
+                    thread.acceptNewTask(selectionKey);
+                }
             }
         }
     }
 
-    public void threadDoneExecuting(SimpleThreadpoolThread thread) {
+    public void threadDoneExecuting(SimpleThreadpoolThread thread, SelectionKey selectionKey) {
         synchronized (threads) {
             synchronized (queuedTasks) {
+                this.server.updateThreadIsBeingRead(selectionKey, false);
                 if (queuedTasks.size() > 0) {
                     thread.acceptNewTask(queuedTasks.poll());
                 } else {

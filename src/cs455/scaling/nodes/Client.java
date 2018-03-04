@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.spi.SelectorProvider;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -22,8 +23,8 @@ public class Client {
 
     private void startClient(String ip, int port) throws IOException {
         hashes = Collections.synchronizedList(new LinkedList<>());
+        this.selector = SelectorProvider.provider().openSelector();
         this.client = SocketChannel.open();
-        this.selector = Selector.open();
         this.client.configureBlocking(false);
         this.client.register(selector, SelectionKey.OP_CONNECT);
         this.client.connect(new InetSocketAddress(ip, port));
@@ -92,7 +93,7 @@ public class Client {
             Timer timer = new Timer();
             timer.schedule(new StatsPrinter(this), 20000, 20000);
             int count = 0;
-            while (count < 10) {
+            while (true) {
                 byte[] testData = generateBytes();
                 String hash = GetSha.SHA1FromBytes(testData);
 

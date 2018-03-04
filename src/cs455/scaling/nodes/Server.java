@@ -3,6 +3,7 @@ package cs455.scaling.nodes;
 import cs455.scaling.threadPool.ThreadPool;
 import cs455.scaling.util.CheckInteger;
 
+import javax.swing.text.StyledEditorKit;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -19,15 +20,32 @@ public class Server {
     private Selector selector;
     private final AtomicInteger totalMessagesProcessed;
     private final Map<Integer, AtomicInteger> individualResults;
+    private final Map<Integer, Boolean> threadBeingRead;
 
     public Server() {
         threadPool = new ThreadPool(this);
-        individualResults = new HashMap<Integer, AtomicInteger>();
+        individualResults = new HashMap<>();
+        threadBeingRead = new HashMap<>();
         totalMessagesProcessed = new AtomicInteger(0);
     }
 
     public void startPool(int i) {
         threadPool.initializePool(i);
+    }
+
+    public boolean checkIfThreadIsBeingRead(SelectionKey key) {
+        synchronized (threadBeingRead) {
+            if(threadBeingRead.containsKey(key.hashCode())) {
+                return threadBeingRead.get(key.hashCode());
+            }
+            return false;
+        }
+    }
+
+    public void updateThreadIsBeingRead(SelectionKey key, boolean isRead) {
+        synchronized (threadBeingRead) {
+            threadBeingRead.put(key.hashCode(), isRead);
+        }
     }
 
     private void accept(SelectionKey key) throws IOException {
@@ -53,7 +71,6 @@ public class Server {
                 for(AtomicInteger ai : individualResults.values()) {
                     ai.set(0);
                 }
-                System.out.println(individualResults);
             }
         }
     }
@@ -74,6 +91,8 @@ public class Server {
             selector.select();
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iter = selectedKeys.iterator();
+//            System.out.println(selectedKeys.size());
+//            System.out.println("the other count " + selector.keys().size());
             while (iter.hasNext()) {
 
                 SelectionKey key = iter.next();
@@ -109,7 +128,7 @@ public class Server {
         for(AtomicInteger ai : this.individualResults.values()){
             total += Math.pow((ai.get()-throughPutAverage),2);
         }
-        return Math.sqrt(total/individualResults.size());
+        return Math.sqrt(total/individualResults.size())/20.0;
     }
 
     public void printStats() {
@@ -117,7 +136,8 @@ public class Server {
             synchronized (individualResults) {
                 Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                 double throughput = totalMessagesProcessed.get()/20.0;
-                int numOfKeys = selector.keys().size();
+
+                int numOfKeys = individualResults.size();
                 double throughPutAverage = throughput/numOfKeys;
                 double standardDeviation = this.getStandardDeviation(throughPutAverage);
                 System.out.println(timestamp + " Server Throughput: " + throughput + ", Active Client Connections: : "
