@@ -7,6 +7,19 @@ import java.security.NoSuchAlgorithmException;
 public class GetSha {
     public static String SHA1FromBytes(byte[] data) {
         try {
+            final MessageDigest md=MessageDigest.getInstance("SHA-1");
+            md.update(data,0,data.length);
+            byte[] bytes=md.digest();
+            return String.format("%0" + (bytes.length << 1) + "x",new BigInteger(1,bytes));
+        }
+        catch (  final NoSuchAlgorithmException e) {
+            throw new UnsupportedOperationException(e);
+        }
+    }
+
+    public static String sha1Hex(final byte[] data){
+
+        try {
             MessageDigest digest = MessageDigest.getInstance("SHA1");
             byte[] hash = digest.digest(data);
             BigInteger hashInt = new BigInteger(1, hash);
@@ -19,5 +32,15 @@ public class GetSha {
             e.printStackTrace();
             return "";
         }
+
+//        try {
+//            final MessageDigest md=MessageDigest.getInstance("SHA-1");
+//            md.update(data,0,data.length);
+//            byte[] bytes=md.digest();
+//            return String.format("%0" + (bytes.length << 1) + "x",new BigInteger(1,bytes));
+//        }
+//        catch (  final NoSuchAlgorithmException e) {
+//            throw new UnsupportedOperationException(e);
+//        }
     }
 }
