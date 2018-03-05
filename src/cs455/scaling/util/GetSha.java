@@ -10,7 +10,11 @@ public class GetSha {
             MessageDigest digest = MessageDigest.getInstance("SHA1");
             byte[] hash = digest.digest(data);
             BigInteger hashInt = new BigInteger(1, hash);
-            return hashInt.toString(16);
+            String hashString = hashInt.toString(16);
+            if(hashString.length() == 39) {
+                hashString = "0" + hashString;
+            }
+            return hashString;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return "";

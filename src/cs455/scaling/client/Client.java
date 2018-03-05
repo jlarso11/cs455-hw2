@@ -40,9 +40,11 @@ public class Client {
 
     private void checkIfHashIsInList(String hash) {
         synchronized (hashes) {
-            hashes.remove(hash);
-            synchronized (totalReceivedCount) {
-                this.totalReceivedCount++;
+            if(hashes.contains(hash)) {
+                hashes.remove(hash);
+                synchronized (totalReceivedCount) {
+                    this.totalReceivedCount++;
+                }
             }
         }
     }
