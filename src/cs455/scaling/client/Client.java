@@ -1,5 +1,6 @@
-package cs455.scaling.nodes;
+package cs455.scaling.client;
 
+import cs455.scaling.server.StatsPrinter;
 import cs455.scaling.util.CheckInteger;
 import cs455.scaling.util.GetSha;
 
@@ -111,8 +112,8 @@ public class Client {
     }
 
     private void printUsage(){
-        System.out.println("Usage: java cs455.scaling.nodes.Client [nodes-host] [nodes-port] [message-rate]");
-        System.out.println("Server port and message must be integer values");
+        System.out.println("Usage: java cs455.scaling.client.Client [server-host] [server-port] [message-rate]");
+        System.out.println("Server port and message rate must be integer values");
     }
 
     public void printStats() {

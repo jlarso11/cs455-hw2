@@ -1,9 +1,8 @@
-package cs455.scaling.nodes;
+package cs455.scaling.server;
 
 import cs455.scaling.threadPool.ThreadPool;
 import cs455.scaling.util.CheckInteger;
 
-import javax.swing.text.StyledEditorKit;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

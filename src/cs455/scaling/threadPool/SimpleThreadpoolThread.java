@@ -1,7 +1,6 @@
-package cs455.scaling.threadPool;//import cs455.scaling.transportation.TCPSender;
-//import cs455.scaling.cs455.scaling.util.cs455.scaling.util5.scaling.GetSha;
+package cs455.scaling.threadPool;
 
-import cs455.scaling.nodes.Server;
+import cs455.scaling.server.Server;
 import cs455.scaling.util.GetSha;
 
 import java.io.IOException;
@@ -11,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SimpleThreadpoolThread extends Thread {
+    private static boolean debug = false;
     private final String threadName;
     private AtomicBoolean execute;
     private SelectionKey selectionKey;
@@ -34,12 +34,11 @@ public class SimpleThreadpoolThread extends Thread {
 
     public void sendReturnMessage(SelectionKey selectionKey, String hash) {
         try {
-           ByteBuffer buffer = ByteBuffer.wrap(hash.getBytes());
+            ByteBuffer buffer = ByteBuffer.wrap(hash.getBytes());
             SocketChannel channel = (SocketChannel) selectionKey.channel();
             channel.write(buffer);
             selectionKey.interestOps(SelectionKey.OP_READ);
             server.incrementMessageCounts(selectionKey);
-            buffer = null;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,14 +74,16 @@ public class SimpleThreadpoolThread extends Thread {
             while (execute.get()) {
                 if(selectionKey != null) {
                     synchronized (selectionKey) {
-//                        System.out.println("Thread on: " + this.threadName);
+                        if(debug) {
+                            System.out.println("Thread on: " + this.threadName);
+                        }
                         byte[] byteArray = this.read(selectionKey);
                         String hash = GetSha.SHA1FromBytes(byteArray);
 
                         this.sendReturnMessage(selectionKey, hash);
 
                         SelectionKey localKey = this.selectionKey;
-                        byteArray = null;
+
                         this.selectionKey = null;
 
                         this.threadPool.threadDoneExecuting(this, localKey);

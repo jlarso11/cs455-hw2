@@ -1,4 +1,4 @@
-package cs455.scaling.nodes;
+package cs455.scaling.client;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;

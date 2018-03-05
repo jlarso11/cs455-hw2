@@ -1,4 +1,6 @@
-package cs455.scaling.nodes;
+package cs455.scaling.server;
+
+import cs455.scaling.client.Client;
 
 import java.util.TimerTask;
 
