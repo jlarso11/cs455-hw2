@@ -7,9 +7,7 @@ import cs455.scaling.util.GetSha;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.sql.Timestamp;
 import java.util.*;
@@ -21,14 +19,21 @@ public class Client {
     private Integer totalReceivedCount = 0;
     private Integer totalSentCount = 0;
 
+    public Client() {
+        hashes = Collections.synchronizedList(new LinkedList<>());
+    }
 
     private void startClient(String ip, int port) throws IOException {
-        hashes = Collections.synchronizedList(new LinkedList<>());
         this.selector = SelectorProvider.provider().openSelector();
         this.client = SocketChannel.open();
         this.client.configureBlocking(false);
         this.client.register(selector, SelectionKey.OP_CONNECT);
-        this.client.connect(new InetSocketAddress(ip, port));
+        try {
+            this.client.connect(new InetSocketAddress(ip, port));
+        } catch (IOException e) {
+            System.out.println("Invalid ip and port for the server.  Please double check the arguments");
+            System.exit(-1);
+        }
         ClientListener clientListener = new ClientListener(this.selector, this);
         new Thread(clientListener).start();
     }
@@ -78,15 +83,18 @@ public class Client {
     }
 
     private void sendMessage(byte[] msg) {
+        ByteBuffer buffer = ByteBuffer.wrap(msg);
         try {
-            ByteBuffer buffer = ByteBuffer.wrap(msg);
             this.client.write(buffer);
-            buffer.clear();
-            synchronized (totalSentCount) {
-                this.totalSentCount++;
-            }
+        } catch (NotYetConnectedException e) {
+            System.out.println("issue connecting to the server.  Please check the coordinates");
+            System.exit(-1);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        buffer.clear();
+        synchronized (totalSentCount) {
+            this.totalSentCount++;
         }
     }
 
@@ -95,7 +103,6 @@ public class Client {
             this.startClient(args[0], Integer.parseInt(args[1]));
             Timer timer = new Timer();
             timer.schedule(new StatsPrinter(this), 20000, 20000);
-            int count = 0;
             while (true) {
                 byte[] testData = generateBytes();
                 String hash = GetSha.SHA1FromBytes(testData);
@@ -104,7 +111,6 @@ public class Client {
                     hashes.add(hash);
                 }
                 this.sendMessage(testData);
-                count++;
                 Thread.sleep(1000/Integer.parseInt(args[2]));
             }
         } else {

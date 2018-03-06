@@ -82,7 +82,12 @@ public class Server {
 
         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.socket().bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), port));
+        try {
+            serverSocketChannel.socket().bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), port));
+        } catch (IOException e) {
+            System.out.println("Invalid port number.  Please find an unused port");
+            System.exit(-1);
+        }
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
         System.out.println("Listening on IP: " + InetAddress.getLocalHost().getHostAddress() + " with open port : #" + port);
 
