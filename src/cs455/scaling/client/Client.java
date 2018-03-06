@@ -45,9 +45,7 @@ public class Client {
                 synchronized (totalReceivedCount) {
                     this.totalReceivedCount++;
                 }
-            } else {
-                System.out.println("hash not in list");
-            }
+            } 
         }
     }
 

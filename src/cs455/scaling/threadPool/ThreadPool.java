@@ -3,18 +3,21 @@ package cs455.scaling.threadPool;
 import cs455.scaling.server.Server;
 
 import java.nio.channels.SelectionKey;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ThreadPool {
 
     private ConcurrentLinkedQueue<SimpleThreadpoolThread> threads;
-    private ConcurrentLinkedQueue<SelectionKey> queuedTasks;
+    private List<SelectionKey> queuedTasks;
     private final Server server;
 
     public ThreadPool(Server server) {
         this.threads = new ConcurrentLinkedQueue<>();
-        this.queuedTasks = new ConcurrentLinkedQueue<>();
+        this.queuedTasks = Collections.synchronizedList(new LinkedList<>());
         this.server = server;
     }
 
@@ -51,7 +54,7 @@ public class ThreadPool {
             synchronized (queuedTasks) {
                 this.server.updateThreadIsBeingRead(selectionKey, false);
                 if (queuedTasks.size() > 0) {
-                    thread.acceptNewTask(queuedTasks.poll());
+                    thread.acceptNewTask(queuedTasks.remove(0));
                 } else {
                     threads.add(thread);
                 }

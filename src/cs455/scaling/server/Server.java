@@ -125,7 +125,7 @@ public class Server {
     private double getStandardDeviation(double throughPutAverage) {
         double total = 0.0;
         for(AtomicInteger ai : this.individualResults.values()){
-            total += Math.pow((ai.get()-throughPutAverage),2);
+            total += Math.pow(((ai.get()/20.0)-throughPutAverage),2);
         }
         return Math.sqrt(total/individualResults.size())/20.0;
     }
