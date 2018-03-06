@@ -17,6 +17,6 @@ Please run Client with the following command:
     
 Assumptions made: 
 
-Only received messages that are correct should be counted as a "received message". 
-The port passed into the Server is correct 
-The ip/host and port number passed into the Client are correct
+Only received hashes that are in the LinkedList should be counted as a "received message".
+The port passed into the Server is correct -- program will gracefully fail if passed a used port.
+The ip/host and port number passed into the Client are correct -- program will gracefully fail if passed wrong credentials for the Server.
